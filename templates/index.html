@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+
+<head>
+    <title>Управление акциями</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+    <link href="https://getbootstrap.com/docs/3.4/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/jumbotron-narrow.css" rel="stylesheet">
+    <link href="../static/style.css" rel="stylesheet"> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.1.0/tablesort.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+    <script>
+        $(function() {
+            new Tablesort(document.getElementById('tableact'));
+            GetActs();
+        });
+
+        function GetActs() {
+            $.ajax({
+                url: '/GetActs',
+                type: 'GET',
+                success: function(res) {
+
+                    var wishObj = JSON.parse(res);
+                    $('#ulist').empty();
+                    $('#listTemplate').tmpl(wishObj).appendTo('#ulist');
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        function ConfirmDelete(elem) {
+            localStorage.setItem('deleteId', $(elem).attr('data-id'));
+            $('#deleteModal').modal();
+        }
+
+        function Delete() {
+            $.ajax({
+                url: '/deleteAct',
+                data: {
+                    Num: localStorage.getItem('deleteId')
+                },
+                type: 'POST',
+                success: function(res) {
+                    var result = JSON.parse(res);
+                    $('#deleteModal').modal('hide');
+                    GetActs();
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        function Edit(elm) {
+            $.ajax({
+                url: '/getActByNumber',
+                data: {
+                    Num: $(elm).attr('data-id')
+                },
+                type: 'POST',
+                success: function(res) {
+                    var data = JSON.parse(res);
+                    document.getElementById("editActive").checked = false;
+
+                    $('#editTitle').val(data['Title']);
+                    $('#editDescription').val(data['Description']);
+                    $('#editNumber').val(data['Num']);
+                    $('#editName').val(data['Name']);
+                    if (data['Active'] === true) {
+
+                        document.getElementById("editActive").checked = true;
+                    }
+                    $('#editModal').modal();
+                    document.getElementById("editNumber").style.visibility = "hidden";
+
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <nav>
+                <ul class="nav nav-pills pull-right">
+                    <li role="presentation" class="active" data-toggle="modal" data-target="#NewModal"><a>Добавить акцию</a>
+                    </li>
+                </ul>
+            </nav>
+            <h3 class="text-muted">Управление акциями</h3>
+        </div>
+        <div class="form-group">
+            <input type="text" id="myinput" class="search form-control" placeholder="Поиск">
+        </div>
+        <script>
+                $(document).ready(function(){
+                  $("#myinput").on("keyup", function() {
+                    var value = $(this).val().toLowerCase();
+                    $("#ulist tr").filter(function() {
+                      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                    });
+                  });
+                });
+            </script>
+        <span class="counter pull-right"></span>
+
+        <script id="listTemplate" type="text/x-jQuery-tmpl">
+            <tr>
+                <td>
+                    ${Name} 
+                </td>
+                <td>
+                    <a href="/picture/${Num}.jpg">Открыть</a>
+                </td>
+                <td>
+                    ${Title}
+                </td>
+                <td>
+                    ${Description}
+                </td>
+                <td>
+                    ${Active}
+                </td>
+                <td>
+                    ${Num}
+                </td>
+                <td>
+                    ${Date}
+                </td>
+                <td>
+                    <a data-id=${Num} onclick="Edit(this)"><span class="glyphicon glyphicon-pencil"></span></a>
+                    <a data-id=${Num} onclick="ConfirmDelete(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+
+        </script>
+        <div id="table"></div>
+        <table id="tableact" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th class="text" role="columnheader">Название акции</th>
+                    <th class="text" role="columnheader">Изображение</th>
+                    <th class="text" role="columnheader">Заголовок</th>
+                    <th class="text" role="columnheader">Описание</th>
+                    <th class="text" role="columnheader">Активность</th>
+                    <th class="text" role="columnheader">Номер акции</th>
+                    <th class="text" role="columnheader">Дата создания</th>
+                    <th class="text" role="columnheader" data-sort-method='none'>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="ulist">
+            </tbody>
+        </table>
+        <script type="text/javascript">
+            $('tbody').sortable();
+        </script>
+        <footer class="footer">
+            <p></p>
+        </footer>
+    </div>
+    </div>
+    <div class="modal fade" data-backdrop="false" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="text-align:center;">
+                    <h4 class="modal-title" style="color:red;" id="deleteModalLabel">Удалить акцию?</h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Назад</button>
+                    <button type="button" class="btn btn-primary" onclick="Delete()">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-backdrop="false" id="NewModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="editModalLabel">Создание акции</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="/createAct" method="POST" enctype="multipart/form-data">
+
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Номер акции:</label>
+                            <input type="number" class="form-control" name="inputNumber" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">Название:</label>
+                            <input type="text" class="form-control" name="inputName" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Заголовок:</label>
+                            <input class="form-control" name="inputTitle" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Описание:</label>
+                            <input class="form-control" name="inputDescription" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Активность:</label>
+                            <input type="checkbox" name="inputActive" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Изображение:</label>
+                            <p>
+                                <input type="file" accept="image/x-png" name="inputPicData">
+                            </p>
+                        </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                    <button type="submit" id="btnUpdate" class="btn btn-primary">Создать</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-backdrop="false" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="editModalLabel">Изменение акции</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="/editAct" method="POST" enctype="multipart/form-data">
+
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">Название:</label>
+                            <input type="text" class="form-control" id="editName" name="editName" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Заголовок:</label>
+                            <input class="form-control" id="editTitle" name="editTitle" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Описание:</label>
+                            <input class="form-control" id="editDescription" name="editDescription" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Активность:</label>
+                            <input type="checkbox" id="editActive" name="editActive" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Изображение:</label>
+                            <p>
+                                <input type="file" accept="image/x-png" id="editPicData" name="editPicData">
+                            </p>
+                        </div>
+                        <input type="number" class="form-control" id="editNumber" name="editNumber" required autofocus>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                    <button type="submit" id="btnUpdate" class="btn btn-primary">Изменить</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
