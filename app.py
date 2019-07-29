@@ -8,8 +8,7 @@ from PIL import Image
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 cnxn = pypyodbc.connect(DRIVER='{ODBC Driver 17 for SQL Server}',
-                    SERVER='DESKTOP-0GASHO2\SQLEXPRESS',
-                    PORT='1433',
+                    SERVER='DESKTOP-0GASHO2\SQLEXPRESS,1433',
                     DATABASE='test',
                     UID='test2',
                     PWD='test2')
