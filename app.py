@@ -7,7 +7,12 @@ from PIL import Image
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-cnxn = pypyodbc.connect('DRIVER={SQL Server};SERVER=DESKTOP-Q0CGQJB;DATABASE=test')
+cnxn = pypyodbc.connect(DRIVER='{SQL Server}',
+                    SERVER='DESKTOP-0GASHO2\SQL_EXPRESS',
+                    PORT='1433',
+                    DATABASE='test',
+                    UID='test',
+                    PWD='test')
 
 @app.route('/')
 def index():
