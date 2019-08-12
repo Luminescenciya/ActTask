@@ -15,7 +15,7 @@
       <script>
          $(function() {
              new Tablesort(document.getElementById('tableact'), {
-                 descending: true
+                 descending: false
              });
              GetActs();
          });
@@ -42,9 +42,9 @@
              var array = [];
              $(function () {
                  $('#ulist tr').each(function (a, b) {
-                     var name = $('.Name', b).text();
+                     var id = $('.Id', b).text();
                      var num = $('.index', b).text();
-                     array.push({ Name: name, Num: num });
+                     array.push({ Id: id, Num: num });
                  });
              
              
@@ -166,6 +166,9 @@
          <span class="counter pull-right"></span>
          <script id="listTemplate" type="text/x-jQuery-tmpl">
             <tr>
+                <td style="display:none;" class="Id">
+                    ${Id} 
+                </td>
                 <td class="Name">
                     ${Name} 
                 </td>
@@ -182,6 +185,7 @@
                 </td>
                 <td>
                     ${Active}
+
                 </td>
                 <td class="index">
                     ${Num}
@@ -268,10 +272,6 @@
                <div class="modal-body">
                   <form action="/createAct" method="POST" enctype="multipart/form-data">
                      <div class="form-group">
-                        <label for="message-text" class="control-label">Номер акции:</label>
-                        <input type="number" class="form-control" name="inputNumber" required autofocus>
-                     </div>
-                     <div class="form-group">
                         <label for="recipient-name" class="control-label">Название:</label>
                         <input type="text" class="form-control" name="inputName" required autofocus>
                      </div>
@@ -285,7 +285,7 @@
                      </div>
                      <div class="form-group">
                         <label for="message-text" class="control-label">Активность:</label>
-                        <input type="checkbox" name="inputActive" value="0">
+                        <input type="checkbox" name="inputActive">
                      </div>
                      <div class="form-group">
                         <label for="message-text" class="control-label">Изображение:</label>
