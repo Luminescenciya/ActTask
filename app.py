@@ -7,9 +7,11 @@ from PIL import Image
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-cnxn = pypyodbc.connect(DRIVER='{SQL Server}',
-                    SERVER='DESKTOP-0GASHO2\SQLEXPRESS,1433',
-                    DATABASE='test')
+cnxn = pypyodbc.connect(DRIVER='{ODBC Driver 17 for SQL Server}',
+                    SERVER='10.63.10.20,1433',
+                    DATABASE='test2',
+                    UID='tester',
+                    PWD='qwerty123')
 
 @app.route('/')
 def index():
@@ -28,17 +30,14 @@ def getacts():
             output = io.BytesIO()
             im.save(output, format="JPEG")
             image = base64.b64encode(output.getvalue())
-            if row[5]==True:
-                activity='Активна'
-            else:
-                activity='Неактивна'
+
             act_dict = {
                 'Id': row[0][2:-1],
                 'Name': row[1],
                 'Image':image.decode('utf8'),
                 'Title':row[3],
                 'Description': row[4],
-                'Active': activity,
+                'Active': row[5],
                 'Num': int(row[6]),
                 'Date': row[7]}
             acts_dict.append(act_dict)
@@ -81,13 +80,13 @@ def savenums():
     param =request.form['array']
     data=json.loads(param)
     Nums=[]
-    Names=[]
+    Ids=[]
     for i in data:
         Nums.append(int(i['Num']))
-        Names.append(i['Name'].strip())
+        Ids.append(i['Id'].strip())
     i=0
     while i < len(Nums):
-        params=(Nums[i],Names[i])
+        params=(Nums[i],Ids[i])
         cursor.execute("{CALL UpdateNums (?,?)}", params)
         cnxn.commit()
         i=i+1
@@ -127,11 +126,6 @@ def deleteact():
 @app.route('/createAct', methods=['POST'])
 def createact():
     cursor = cnxn.cursor()
-    _number = request.form['inputNumber']
-    cursor.execute("{CALL CheckNums (?)}", [str(_number)])
-    answer = cursor.fetchone()
-    if answer!=None:
-        return render_template('error.html', error = 'Ошибка! \n Такой номер уже существует!')
     _name = request.form['inputName']
     _title = request.form['inputTitle']
     _description = request.form['inputDescription']
@@ -163,8 +157,8 @@ def createact():
     with io.BytesIO() as output:
         rgb_im.save(output, format="JPEG")
         contents = output.getvalue()
-    params = (_name, _title, _description, _active, pypyodbc.Binary(contents), _number)
-    cursor.execute("{CALL addAct (?,?,?,?,?,?)}", params)
+    params = (_name, _title, _description, _active, pypyodbc.Binary(contents))
+    cursor.execute("{CALL addAct (?,?,?,?,?)}", params)
     cnxn.commit()
     return redirect('/')
 
@@ -216,4 +210,4 @@ def editact():
 
 
 if __name__ == "__main__":
-    app.run(debug = False, port=5000)
+    app.run(debug = True, port=5000)
