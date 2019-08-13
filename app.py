@@ -8,10 +8,7 @@ from PIL import Image
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 cnxn = pypyodbc.connect(DRIVER='{ODBC Driver 17 for SQL Server}',
-                    SERVER='10.63.10.20,1433',
-                    DATABASE='test2',
-                    UID='tester',
-                    PWD='qwerty123')
+                    )
 
 @app.route('/')
 def index():
@@ -30,18 +27,22 @@ def getacts():
             output = io.BytesIO()
             im.save(output, format="JPEG")
             image = base64.b64encode(output.getvalue())
-
+            if row[5]==True:
+                activity='+'
+            else:
+                activity='-'
             act_dict = {
                 'Id': row[0][2:-1],
                 'Name': row[1],
                 'Image':image.decode('utf8'),
                 'Title':row[3],
                 'Description': row[4],
-                'Active': row[5],
+                'Active': activity,
                 'Num': int(row[6]),
                 'Date': row[7]}
             acts_dict.append(act_dict)
             acts_dict=sorted(acts_dict, key = lambda i: i['Num'])
+            
         return json.dumps(acts_dict)
     except Exception as e:
         return render_template('error.html',error = str(e))
@@ -144,9 +145,14 @@ def createact():
     Следующие две строки созданы для создания белого фона у png, у которых фон
     отсутствует. По умолчанию он конвертирует в чёрный.
     '''
-    rgb_im = Image.new('RGB', original_image.size, (255,255,255)) 
-    rgb_im.paste(original_image, mask=original_image.split()[3])
-    rgb_im.save('foo.jpg', 'JPEG', quality=80)
+    print(original_image, file=sys.stderr)
+    try:
+        rgb_im = Image.new('RGB', original_image.size, (255,255,255)) 
+        rgb_im.paste(original_image, mask=original_image.split()[3])
+        rgb_im.save('foo.jpg', 'JPEG', quality=80)
+    except IndexError:
+        rgb_im=original_image
+        rgb_im.save('foo.jpg', 'JPEG', quality=80)
     w, h = rgb_im.size
     cursor.execute("{CALL CheckWidth}")
     width = cursor.fetchone()
@@ -187,9 +193,13 @@ def editact():
         except Exception:
             return render_template('error.html',error = 'Ошибка! \n Выбранный фаил не является файлом изображения!')
         original_image.load()
-        rgb_im = Image.new('RGB', original_image.size, (255,255,255)) 
-        rgb_im.paste(original_image, mask=original_image.split()[3])
-        rgb_im.save('foo.jpg', 'JPEG', quality=80)
+        try:
+            rgb_im = Image.new('RGB', original_image.size, (255,255,255)) 
+            rgb_im.paste(original_image, mask=original_image.split()[3])
+            rgb_im.save('foo.jpg', 'JPEG', quality=80)
+        except IndexError:
+            rgb_im=original_image
+            rgb_im.save('foo.jpg', 'JPEG', quality=80)
         w, h = rgb_im.size
         cursor.execute("{CALL CheckWidth}")
         width = cursor.fetchone()
