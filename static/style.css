@@ -10,6 +10,10 @@
 .text {
     text-align: center;
 }
+.Active {
+	font-size: 200%;
+	font-weight: bold;
+}
 
 span {
 	height: 30px;
