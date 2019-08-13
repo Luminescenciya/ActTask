@@ -12,6 +12,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.1.0/sorts/tablesort.number.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.js"></script>
       <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+
       <script>
          $(function() {
              new Tablesort(document.getElementById('tableact'), {
@@ -27,7 +28,9 @@
                  success: function(res) {
          
                      var wishObj = JSON.parse(res);
-                     console.log(wishObj);
+
+                     console.log(Object.keys(wishObj).length);
+                     
                      $('#ulist').empty();
                      $('#listTemplate').tmpl(wishObj).appendTo('#ulist');
          
@@ -138,7 +141,7 @@
             <h3 class="text-muted">Управление акциями</h3>
          </div>
          <div class="form-group">
-            <input type="text" id="myinput" onkeyup="myFunction()" class="search form-control" placeholder="Поиск в названиях, заголовках и описаниях...">
+            <input type="text" id="myinput" onkeyup="myFunction()" class="search form-control" placeholder="Поиск в названиях, заголовках, описаниях и активности...">
          </div>
          <script>
             function myFunction() {
@@ -150,14 +153,16 @@
                 for (i = 1; i < tr.length; i++) {
                     tr[i].style.display = "none";
                     td = tr[i].getElementsByTagName("td");
-                    for (var j = 0; j < 4; j++) {
-                    cell = tr[i].getElementsByTagName("td")[j];
-                    console.log(cell)
-                    if (cell) {
+                    for (var j = 1; j < 6; j++) {
+                    if (j!=2){
+                        cell = tr[i].getElementsByTagName("td")[j];
+                        console.log(cell)
+                        if (cell) {
                         if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
                         tr[i].style.display = "";
                         break;
                         } 
+                    }
                     }
                     }
                 }
@@ -165,6 +170,7 @@
          </script>
          <span class="counter pull-right"></span>
          <script id="listTemplate" type="text/x-jQuery-tmpl">
+            
             <tr>
                 <td style="display:none;" class="Id">
                     ${Id} 
@@ -183,9 +189,8 @@
                 <td>
                     ${Description}
                 </td>
-                <td>
+                <td class="Active">
                     ${Active}
-
                 </td>
                 <td class="index">
                     ${Num}
@@ -207,7 +212,7 @@
                   <th class="text" data-sort-method='none'>Изображение</th>
                   <th class="text" id="head" >Заголовок</th>
                   <th class="text" data-sort-method='none'>Описание</th>
-                  <th class="text" id="head" >Активность</th>
+                  <th class="text" data-sort-method='none'>Активность</th>
                   <th class="text" id="head" data-sort-method='number'>Номер акции</th>
                   <th class="text" id="head" >Дата создания</th>
                   <th class="text" data-sort-method='none'>Действия</th>
